@@ -57,7 +57,7 @@ def get_drivers(year: int, round_number: int):
         info = session.get_driver(abbr)
         drivers.append({
             "number": safe_value(info.get("DriverNumber")),
-            "abbreviation": abbr,
+            "abbreviation": safe_value(info.get("Abbreviation")),
             "full_name": safe_value(info.get("FullName")),
             "team": safe_value(info.get("TeamName")),
             "team_colour": safe_value(info.get("TeamColor")),
@@ -74,7 +74,7 @@ def get_telemetry(year: int, round_number: int, abbreviation: str):
     
     pit_stops = []
     for _, lap in laps.iterrows():
-        if lap["PitOutTime"] is not pd.NaT and not pd.isna(lap["PitOutTime"]):
+        if pd.notna(lap.get("PitOutTime")):
             pit_stops.append({
                 "lap": int(lap["LapNumber"]),
                 "compound": safe_value(lap.get("Compound")),
@@ -82,17 +82,23 @@ def get_telemetry(year: int, round_number: int, abbreviation: str):
 
     all_tel = []
     all_pos = []
+    race_time_offset = 0.0
 
     for _, lap in laps.iterrows():
         try:
-            tel = lap.get_telemetry()
-            if tel is None or tel.empty:
-                continue
+            tel = lap.get_telemetry()          
             pos = lap.get_pos_data()
 
+            if tel is None or tel.empty:
+                continue
+
+            lap_times_tel = tel["Time"].dt.total_seconds().values
+            lap_duration = float(lap_times_tel[-1]) if len(lap_times_tel) else 0
+
             for _, row in tel.iterrows():
+                t = row["Time"].total_seconds() + race_time_offset
                 all_tel.append({
-                    "time": row["Time"].total_seconds(),
+                    "time": round(t, 3),
                     "speed": safe_value(row.get("Speed")),
                     "throttle": safe_value(row.get("Throttle")),
                     "brake": bool(row.get("Brake" , False)),
@@ -104,15 +110,22 @@ def get_telemetry(year: int, round_number: int, abbreviation: str):
 
             if pos is not None and not pos.empty:
                 for _, row in pos.iterrows():
+                    t = row["Time"].total_seconds() + race_time_offset
                     all_pos.append({
-                        "time": row["Time"].total_seconds(),
+                        "time": round(t, 3),
                         "x": safe_value(row.get("X")),
                         "y": safe_value(row.get("Y")),
                         "lap": int(lap["LapNumber"]),
                     })
+
+            race_time_offset += lap_duration
+
         except Exception:
             continue
     
+    all_tel.sort(key=lambda x: x["time"])
+    all_pos.sort(key=lambda x: x["time"])
+
     circuit_points = []
     try: 
         lap = laps.pick_fastest()
@@ -130,5 +143,5 @@ def get_telemetry(year: int, round_number: int, abbreviation: str):
         "telemetry": all_tel,
         "position": all_pos,
         "pit_stops": pit_stops,
-        "circuit_points": circuit_points,
+        "circuit": circuit_points,
     }
