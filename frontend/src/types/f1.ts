@@ -44,7 +44,7 @@ export interface CircuitPoint {
 
 export interface DriverData {
     telemetry: TelemetryPoint[];
-    positions: PositionPoint[];
+    position: PositionPoint[];
     pit_stops: PitStop[];
     circuit: CircuitPoint[];
 }
