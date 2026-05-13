@@ -13,6 +13,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+import os
+os.makedirs("cache", exist_ok=True)
 fastf1.Cache.enable_cache("cache")
 
 def safe_value(val):
