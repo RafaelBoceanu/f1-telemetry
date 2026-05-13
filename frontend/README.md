@@ -1,73 +1,54 @@
-# React + TypeScript + Vite
+# F1 Race Telemetry
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An interactive Formula 1 race telemetry visualiser built with React, TypeScript, and Python (FastF1).
 
-Currently, two official plugins are available:
+## Live Demo
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+[https://f1-telemetry-sigma.vercel.app](https://f1-telemetry-sigma.vercel.app)
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Browse race weekends from 2022–2026
+- Select any driver and watch their race unfold in real time
+- Circuit map with live car position dot in team colour
+- Telemetry panel: speed, throttle, brake, RPM, gear, DRS
+- Full playback controls: play, pause, scrub, and speed multiplier (0.5x–25x)
+- Future races automatically greyed out and unclickable
+- Lap counter tracking position through the race
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+**Frontend**
+- React 19 + TypeScript
+- Vite
+- HTML5 Canvas (circuit map)
+- Deployed on Vercel
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+**Backend**
+- Python + FastAPI
+- FastF1 (official F1 timing data)
+- Deployed on Railway
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Local Development
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+**Backend**
+```bash
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn main:app --reload
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+**Frontend**
+```bash
+cd frontend
+npm install
+npm run dev
 ```
+
+Open [http://localhost:5173](http://localhost:5173)
+
+## Architecture
+
+The FastAPI backend fetches and caches race data via FastF1, exposing REST endpoints for sessions, drivers, and telemetry. The React frontend fetches all data on driver selection, then replays it locally using a `requestAnimationFrame` loop — no further API calls during playback.
