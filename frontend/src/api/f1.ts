@@ -2,7 +2,7 @@
 
 import type { Race, Driver, DriverData } from '../types/f1'
 
-const BASE_URL = 'http://127.0.0.1:8000';
+const BASE_URL = 'f1-telemetry-production-2b0b.up.railway.app';
 
 async function get<T>(path: string): Promise<T> {
     const res = await fetch(`${BASE_URL}${path}`);
